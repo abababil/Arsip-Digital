@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arsip Digital - Sistem Manajemen Data Arsip</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="assets/logo.png" type="image/png">
+</head>
+<body>
+
+  <!-- Tata.co Loading Screen -->
+  <div class="tata-loader" id="tataLoader">
+    <div class="tata-loader-text">
+      <span>T</span><span>a</span><span>t</span><span>a</span><span>.</span><span>c</span><span>o</span>
+    </div>
+    <div class="tata-loader-bar"><div class="tata-loader-bar-inner"></div></div>
+  </div>
+
+  <!-- LOGIN SCREEN -->
+  <div class="login-screen" id="loginScreen">
+    <div class="login-left">
+      <img id="loginLogo" alt="TA Logo">
+      <h2>Tata.co</h2>
+    </div>
+    <div class="login-right">
+      <div class="login-box">
+        <!-- LOGIN FORM -->
+        <div id="loginView">
+          <h1>Welcome Back</h1>
+          <p class="sub">Sign in to continue to your digital archive</p>
+          <div class="login-error" id="loginError">Email atau password salah</div>
+          <form id="loginForm" onsubmit="return handleLogin(event)">
+            <div class="field">
+              <label>Email</label>
+              <input type="email" id="loginUser" placeholder="email@contoh.com" autocomplete="email" required>
+            </div>
+            <div class="field">
+              <label>Password</label>
+              <div class="pass-wrap">
+                <input type="password" id="loginPass" placeholder="Enter your password" autocomplete="current-password" required>
+                <button type="button" class="pass-toggle" onclick="togglePassVisibility('loginPass','passEye')" aria-label="Show password"><i class="fas fa-eye" id="passEye"></i></button>
+              </div>
+            </div>
+            <div class="login-row">
+              <label><input type="checkbox" id="rememberMe"> Remember me</label>
+              <a href="#" onclick="openLoginModal('forgot');return false;">Forgot password?</a>
+            </div>
+            <button type="submit" class="btn-login">Login</button>
+          </form>
+          <div class="login-footer">
+            Don't have an account?
+            <a href="#" onclick="showRegister();return false;">Register</a>
+          </div>
+        </div>
+
+        <!-- REGISTER FORM -->
+        <div id="registerView" style="display:none;">
+          <h1>Create Account</h1>
+          <p class="sub">Daftar untuk mulai menggunakan Arsip Digital</p>
+          <div class="login-error" id="regError">Terjadi kesalahan</div>
+          <form id="registerForm" onsubmit="return handleRegister(event)">
+            <div class="field">
+              <label>Nama</label>
+              <input type="text" id="regName" placeholder="Nama lengkap" required>
+            </div>
+            <div class="field">
+              <label>Email</label>
+              <input type="email" id="regEmail" placeholder="email@contoh.com" autocomplete="email" required>
+            </div>
+            <div class="field">
+              <label>Password</label>
+              <div class="pass-wrap">
+                <input type="password" id="regPass" placeholder="Minimal 6 karakter" autocomplete="new-password" required minlength="6">
+                <button type="button" class="pass-toggle" onclick="togglePassVisibility('regPass','regEye')" aria-label="Show password"><i class="fas fa-eye" id="regEye"></i></button>
+              </div>
+            </div>
+            <button type="submit" class="btn-login">Register</button>
+          </form>
+          <div class="login-footer">
+            Already have an account?
+            <a href="#" onclick="showLogin();return false;">Login</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Forgot Password & Contact Admin modals (login only) -->
+  <div class="login-modal-overlay" id="loginModalOverlay" onclick="if(event.target===this)closeLoginModal()">
+    <div class="login-modal" id="loginModalBox">
+      <h3 id="loginModalTitle">Forgot Password</h3>
+      <p class="desc" id="loginModalDesc">Masukkan email akun Anda. Link reset password akan dikirim ke email tersebut.</p>
+      <div class="field" id="loginModalField1">
+        <label id="loginModalLabel1">Email / Username</label>
+        <input type="text" id="loginModalInput1" placeholder="email@contoh.com atau username">
+      </div>
+      <div class="field" id="loginModalField2" style="display:none;">
+        <label id="loginModalLabel2">Pesan</label>
+        <textarea id="loginModalInput2" rows="3" placeholder="Tuliskan keperluan Anda..."></textarea>
+      </div>
+      <div class="login-modal-actions">
+        <button type="button" class="login-modal-btn-cancel" onclick="closeLoginModal()">Batal</button>
+        <button type="button" class="login-modal-btn-submit" id="loginModalSubmit" onclick="submitLoginModal()">Kirim</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="app hide" id="mainApp">
+    <!-- Sidebar Overlay (mobile) -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <!-- ========== SIDEBAR ========== -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <div class="logo-icon">
+            <img src="assets/logo.png" alt="Logo TA">
+          </div>
+          <div class="logo-text">
+            <h1>Arsip Digital</h1>
+            <p>Semua berkas, satu tempat</p>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-new" onclick="openModal('upload')">
+        <i class="fas fa-plus"></i> Arsip baru
+      </button>
+
+      <nav class="nav-section">
+        <div class="nav-item active" data-view="dashboard" onclick="switchView('dashboard')">
+          <i class="fas fa-th-large"></i>
+          Dashboard
+        </div>
+        <div class="nav-item" data-view="all" onclick="switchView('all')">
+          <i class="fas fa-folder-open"></i>
+          Semua arsip
+          <span class="badge" id="totalBadge">4</span>
+        </div>
+        <div class="nav-item" data-view="folders" onclick="switchView('folders')">
+          <i class="fas fa-folder-tree"></i>
+          Kelola folder
+          <span class="badge">14</span>
+        </div>
+        <div class="nav-item" data-view="trash" onclick="switchView('trash')">
+          <i class="fas fa-trash-alt"></i>
+          Sampah
+          <span class="badge">0</span>
+        </div>
+
+        <div class="nav-label">Folder</div>
+        <div class="folder-list" id="sidebarFolders">
+          <!-- Filled by JS -->
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div id="footerText">© 2026 Arsip Digital</div>
+        <button type="button" onclick="logout()" style="margin-top:12px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.4);color:#fca5a5;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.2s;"><i class="fas fa-sign-out-alt"></i> Logout</button>
+      </div>
+    </aside>
+
+    <!-- ========== MAIN ========== -->
+    <div class="main">
+      <!-- Topbar -->
+      <header class="topbar">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <button class="mobile-toggle" onclick="toggleSidebar()">
+            <i class="fas fa-bars"></i>
+          </button>
+          <div class="greeting">
+            <h2 id="greetingText">Selamat pagi, User</h2>
+            <p id="dateText">Minggu, 11 Oktober 2026</p>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Cari di semua arsip dan folder..." id="searchInput" oninput="handleSearch()">
+          </div>
+          <div class="lang-switcher">
+            <button class="icon-btn" onclick="toggleLangMenu()" title="Language">
+              <i class="fas fa-globe"></i>
+            </button>
+            <div class="lang-menu" id="langMenu">
+              <div class="lang-item active" data-lang="id" onclick="setLanguage('id')">🇮🇩 Bahasa Indonesia</div>
+              <div class="lang-item" data-lang="en" onclick="setLanguage('en')">🇺🇸 English</div>
+              <div class="lang-item" data-lang="ms" onclick="setLanguage('ms')">🇲🇾 Bahasa Melayu</div>
+              <div class="lang-item" data-lang="ja" onclick="setLanguage('ja')">🇯🇵 日本語</div>
+              <div class="lang-item" data-lang="ar" onclick="setLanguage('ar')">🇸🇦 العربية</div>
+            </div>
+          </div>
+          <div class="notif-wrap">
+            <button class="icon-btn" title="Notifications" onclick="toggleNotifPanel()">
+              <i class="fas fa-bell"></i>
+              <span class="notif-badge" id="notifBadge">0</span>
+            </button>
+            <div class="notif-panel" id="notifPanel">
+              <div class="notif-panel-header">
+                <span>Notifikasi</span>
+                <button type="button" onclick="markAllNotifRead()">Tandai dibaca</button>
+              </div>
+              <div id="notifList"></div>
+            </div>
+          </div>
+          <button class="icon-btn" title="Sinkron Google Drive" onclick="syncDrive()">
+            <i class="fab fa-google-drive"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- Content -->
+      <div class="content">
+        <!-- DASHBOARD VIEW -->
+        <div class="dashboard-view" id="dashboardView">
+          <!-- Rak Folder -->
+          <div class="section-header">
+            <h3><i class="fas fa-th"></i> Rak folder</h3>
+            <span style="font-size:12px;color:var(--text-secondary);">Folder utama · <span id="folderCountLabel">9 folder</span></span>
+          </div>
+          <div class="folder-grid" id="folderGrid">
+            <!-- Filled by JS -->
+          </div>
+
+          <!-- Stats -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon purple"><i class="fas fa-file-alt"></i></div>
+              <div class="stat-info">
+                <h4 id="statTotal">4</h4>
+                <p>Total arsip</p>
+                <div class="sub">0 di sampah</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon green"><i class="fas fa-calendar-plus"></i></div>
+              <div class="stat-info">
+                <h4 id="statMonth">3</h4>
+                <p>Bulan ini</p>
+                <div class="sub">+2 dari bulan lalu</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon orange"><i class="fas fa-exclamation-circle"></i></div>
+              <div class="stat-info">
+                <h4 id="statEmpty">0</h4>
+                <p>Belum ada berkas</p>
+                <div class="sub">Semua lengkap</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon blue"><i class="fas fa-folder"></i></div>
+              <div class="stat-info">
+                <h4 id="statFolders">9</h4>
+                <p>Folder</p>
+                <div class="sub">Kelola folder</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Charts -->
+          <div class="bottom-grid">
+            <div class="panel">
+              <div class="panel-header">
+                <h4>Dokumen per bulan</h4>
+                <a href="#">Lihat semua</a>
+              </div>
+              <div class="bar-chart" id="barChart">
+                <!-- Filled by JS -->
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-header">
+                <h4>Status dokumen</h4>
+                <a href="#">Filter</a>
+              </div>
+              <div class="status-list" id="statusList">
+                <div class="status-item">
+                  <div class="status-dot baru"></div>
+                  <span class="label">Baru</span>
+                  <span class="num">4</span>
+                </div>
+                <div class="status-item">
+                  <div class="status-dot proses"></div>
+                  <span class="label">Dalam proses</span>
+                  <span class="num">0</span>
+                </div>
+                <div class="status-item">
+                  <div class="status-dot selesai"></div>
+                  <span class="label">Selesai</span>
+                  <span class="num">0</span>
+                </div>
+                <div class="status-item">
+                  <div class="status-dot arsip"></div>
+                  <span class="label">Diarsipkan</span>
+                  <span class="num">0</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FILE LIST VIEW -->
+        <div class="file-list" id="fileListView">
+          <div class="section-header">
+            <h3><i class="fas fa-folder-open"></i> <span id="listTitle">Semua arsip</span></h3>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn btn-primary" id="btnListPrimary" style="padding:8px 16px;font-size:13px;" onclick="onListPrimaryAction()">
+                <i class="fas fa-plus"></i> Upload
+              </button>
+            </div>
+          </div>
+
+          <!-- Toolbar filter/sort (arsip) -->
+          <div class="list-toolbar" id="fileToolbar">
+            <select id="filterFolder" onchange="applyFilterSort()">
+              <option value="">Semua folder</option>
+            </select>
+            <select id="sortBy" onchange="applyFilterSort()">
+              <option value="date-desc">Tanggal terbaru</option>
+              <option value="date-asc">Tanggal terlama</option>
+              <option value="name-asc">Nama A-Z</option>
+              <option value="name-desc">Nama Z-A</option>
+              <option value="folder-asc">Folder A-Z</option>
+            </select>
+            <div class="spacer"></div>
+            <span style="font-size:12px;color:var(--text-secondary);" id="listCountLabel"></span>
+          </div>
+
+          <div class="table-container" id="fileTableWrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nama File</th>
+                  <th>Folder</th>
+                  <th>Ukuran</th>
+                  <th>Tanggal</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="fileTableBody"></tbody>
+            </table>
+            <div class="empty-state" id="emptyState" style="display:none;">
+              <i class="fas fa-folder-open"></i>
+              <h4>Belum ada arsip</h4>
+              <p>Upload file pertama kamu dengan tombol di atas</p>
+            </div>
+          </div>
+
+          <!-- Kelola folder panel -->
+          <div class="folder-manage" id="folderManageView">
+            <div class="folder-manage-list" id="folderManageList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== MODAL UPLOAD ========== -->
+  <div class="modal-overlay" id="uploadModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Upload Arsip Baru</h3>
+        <button class="modal-close" onclick="closeModal('upload')"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+          <i class="fas fa-cloud-upload-alt"></i>
+          <p>Seret file ke sini atau <span>pilih file</span></p>
+          <p style="font-size:12px;margin-top:6px;">PDF, DOC, XLS, JPG, PNG (maks 10MB)</p>
+        </div>
+        <input type="file" id="fileInput" style="display:none;" multiple onchange="handleFileSelect(event)">
+        <div id="selectedFiles" style="margin-top:12px;"></div>
+
+        <div class="form-group" style="margin-top:16px;">
+          <label>Nama / Judul Arsip</label>
+          <input type="text" id="fileName" placeholder="Contoh: Kontrak Kerja 2026">
+        </div>
+        <div class="form-group">
+          <label>Folder Tujuan</label>
+          <select id="fileFolder">
+            <!-- Filled by JS -->
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Keterangan (opsional)</label>
+          <textarea id="fileNote" rows="2" placeholder="Catatan tambahan..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('upload')">Batal</button>
+        <button class="btn btn-primary" onclick="uploadFile()">
+          <i class="fas fa-upload"></i> Upload
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL PREVIEW -->
+  <div class="modal-overlay" id="previewModal">
+    <div class="modal preview-modal">
+      <div class="modal-header">
+        <h3 id="previewTitle">Preview</h3>
+        <button class="modal-close" onclick="closeModal('preview')"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="preview-body" id="previewBody"></div>
+        <div class="preview-meta" id="previewMeta"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('preview')">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL EDIT -->
+  <div class="modal-overlay" id="editModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Edit Arsip</h3>
+        <button class="modal-close" onclick="closeModal('edit')"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editFileId">
+        <div class="form-group">
+          <label>Nama / Judul Arsip</label>
+          <input type="text" id="editFileName">
+        </div>
+        <div class="form-group">
+          <label>Folder</label>
+          <select id="editFileFolder"></select>
+        </div>
+        <div class="form-group">
+          <label>Keterangan</label>
+          <textarea id="editFileNote" rows="3"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('edit')">Batal</button>
+        <button class="btn btn-primary" onclick="saveEditFile()"><i class="fas fa-save"></i> Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL FOLDER -->
+  <div class="modal-overlay" id="folderModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="folderModalTitle">Folder Baru</h3>
+        <button class="modal-close" onclick="closeModal('folder')"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="folderEditId">
+        <div class="form-group">
+          <label>Nama Folder</label>
+          <input type="text" id="folderNameInput" placeholder="Contoh: Laporan Tahunan">
+        </div>
+        <div class="form-group">
+          <label>Warna</label>
+          <select id="folderColorInput">
+            <option value="blue">Biru</option>
+            <option value="green">Hijau</option>
+            <option value="orange">Oranye</option>
+            <option value="purple">Ungu</option>
+            <option value="pink">Pink</option>
+            <option value="cyan">Cyan</option>
+            <option value="red">Merah</option>
+            <option value="yellow">Kuning</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('folder')">Batal</button>
+        <button class="btn btn-primary" onclick="saveFolder()"><i class="fas fa-save"></i> Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" style="position:fixed;bottom:24px;right:24px;background:#1F2937;color:white;padding:12px 20px;border-radius:10px;font-size:14px;font-weight:500;display:none;z-index:300;box-shadow:0 8px 24px rgba(0,0,0,0.2);"></div>
+
+
+  <!-- Firebase SDK -->
+
+  <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-storage-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
